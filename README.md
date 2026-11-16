@@ -77,3 +77,8 @@ The default run writes `results/pilot.json` and
 
 The JSON file contains the scores and experiment statistics.  The PDF file
 contains the training curves for the three Q-learning configurations.
+
+## Progress report
+
+The Stage 2 project progress report and the video-frame evidence are in the
+[`report/`](report/) folder.
