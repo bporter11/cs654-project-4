@@ -1,60 +1,59 @@
-# Reinforcement Learning for Flappy Bird (CS 654, Project 4)
+# Modular Flappy Bird Project
 
-Team: Brian Porter, Vinayaka Hegde, Sanjana Sasmal, Preston Huynh
+The original prototype placed the environment, Q-learning agent, experiments,
+plotting, and command-line runner in one file.  This version separates those
+responsibilities:
 
-`flappy_rl.py` contains everything in one file: a simplified Flappy Bird game, tabular Q-learning, and the pilot experiments reported in the project proposal.
+| File | Responsibility |
+| --- | --- |
+| `flappy_bird_env.py` | Game physics, pipes, collisions, observations, rewards, and rendering |
+| `environment.py` | Small project wrapper around the Gymnasium environment |
+| `agent.py` | Base agent interface |
+| `agent_q_learning.py` | State discretization and tabular Q-learning |
+| `argument.py` | Command-line options |
+| `experiments.py` | Training, evaluation, and experiment configurations |
+| `plotting.py` | Learning curves and JSON output |
+| `main.py` | Command-line entry point |
+| `flappy_rl.py` | Compatibility launcher for the original command |
 
-## 1. Install
+## Set up the notebook environment
 
-You need Python 3.11, 3.12, or 3.13. Install the exact package versions used for the proposal:
+If you are using the hosted notebook environment, select the options shown
+below.  The project can run on a CPU, so four GPUs are optional and are not
+required for the tabular Q-learning experiments.
+
+![Server options for the reinforcement-learning notebook](server_options.png)
+
+Select the reinforcement-learning notebook image and click **Start**.  After
+the notebook server opens, upload or copy all of the project files into the
+same folder, then open a terminal in that folder.
+
+Install the required Python packages:
 
 ```bash
-pip install numpy==2.4.2 matplotlib==3.10.8 gymnasium==1.4.0 pygame==2.6.1
+pip install -r requirements.txt
 ```
 
-## 2. Run
+You can check that the files and dependencies work with a short run first:
 
-From the folder that contains `flappy_rl.py`:
+```bash
+python main.py --episodes 20 --eval-episodes 2 --seeds 0 --workers 1
+```
+
+## Run the complete project
 
 ```bash
 python flappy_rl.py
 ```
 
-The run takes about 2 minutes on CPU; no GPU is needed. A `pkg_resources is deprecated` warning from Pygame is harmless.
+To use multiple CPU workers:
 
-The script does the following:
-
-1. Checks the game with Gymnasium's environment checker, then prints the score of a simple hand-coded controller.
-2. Trains Q-learning in 3 configurations: sparse reward with the basic state, sparse reward with the expanded state, and shaped reward with the basic state. Each configuration runs with 3 random seeds for 5,000 episodes.
-3. Evaluates each trained agent, and a random policy, on 20 unseen levels.
-4. Saves the results.
-
-## 3. Results
-
-The script creates two files next to itself:
-
-- `results/pilot.json`: all numbers. The proposal table uses the `eval_mean` values.
-- `figures/learning_curve.pdf`: the learning-curve figure in the proposal.
-
-Everything is seeded, so you should get exactly these values:
-
-| Configuration | Pipes passed (`eval_mean`) |
-|---|---|
-| Random policy | 0.0 |
-| Sparse reward, basic state | 27.95 (28.0 in the proposal) |
-| Sparse reward, expanded state | 0.38 (0.4) |
-| Shaped reward, basic state | 1.32 (1.3) |
-
-The hand-coded controller scores 45.4. Episodes are capped at 59 pipes.
-
-## Optional: watch the game
-
-```python
-from flappy_rl import FlappyBirdEnv
-env = FlappyBirdEnv(render_mode="human")
-obs, _ = env.reset(seed=0)
-done = False
-while not done:
-    obs, r, term, trunc, _ = env.step(int(obs[0] > obs[3] + 15))  # hand-coded controller
-    done = term or trunc
+```bash
+python main.py --workers 3
 ```
+
+The default run writes `results/pilot.json` and
+`figures/learning_curve.pdf`.
+
+The JSON file contains the scores and experiment statistics.  The PDF file
+contains the training curves for the three Q-learning configurations.
