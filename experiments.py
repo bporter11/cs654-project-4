@@ -24,10 +24,22 @@ def heuristic(observation):
     return int(observation[0] > observation[3] + 15)
 
 
-def evaluate(policy, reward_mode="sparse", episodes=20, seed=10_000, render=False):
+def evaluate(
+    policy,
+    reward_mode="sparse",
+    episodes=20,
+    seed=10_000,
+    render=False,
+    video_folder=None,
+    video_prefix="flappy_bird",
+    video_episodes=0,
+):
     environment = Environment(
         reward_mode=reward_mode,
-        render_mode="human" if render else None,
+        render_mode="human" if render and video_folder is None else None,
+        video_folder=video_folder,
+        video_prefix=video_prefix,
+        video_episodes=video_episodes,
     )
     scores = []
     try:
@@ -45,7 +57,15 @@ def evaluate(policy, reward_mode="sparse", episodes=20, seed=10_000, render=Fals
     return float(np.mean(scores))
 
 
-def train_one(configuration, seed, episodes, eval_episodes):
+def train_one(
+    configuration,
+    seed,
+    episodes,
+    eval_episodes,
+    record_video=False,
+    video_dir="videos",
+    video_episodes=5,
+):
     label = configuration
     reward_mode, state_representation = CONFIGURATIONS[label]
     environment = Environment(reward_mode=reward_mode)
@@ -63,6 +83,13 @@ def train_one(configuration, seed, episodes, eval_episodes):
             agent.evaluate_action,
             reward_mode=reward_mode,
             episodes=eval_episodes,
+            video_folder=(video_dir if record_video and seed == 0 else None),
+            video_prefix=(
+                "agent_" + label.lower().replace(" ", "_").replace(",", "")
+                if record_video and seed == 0
+                else "agent"
+            ),
+            video_episodes=video_episodes,
         )
         return {
             "label": label,
@@ -87,6 +114,9 @@ def run_experiments(
     output_dir=".",
     check_environment=True,
     render_heuristic=False,
+    record_video=False,
+    video_dir="videos",
+    video_episodes=5,
 ):
     """Run all pilot configurations and save JSON and PDF outputs."""
     if check_environment:
@@ -105,8 +135,20 @@ def run_experiments(
     print("Environment check passed.")
     print(f"Hand-coded controller score: {heuristic_score:.2f}")
 
+    if record_video and workers > 1:
+        print("Video recording requires one worker; using --workers 1.")
+        workers = 1
+
     jobs = [
-        (label, seed, episodes, eval_episodes)
+        (
+            label,
+            seed,
+            episodes,
+            eval_episodes,
+            record_video,
+            video_dir,
+            video_episodes,
+        )
         for label in CONFIGURATIONS
         for seed in seeds
     ]

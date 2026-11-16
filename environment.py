@@ -6,6 +6,7 @@ Atari project while keeping the actual Flappy Bird mechanics in
 """
 
 import numpy as np
+import gymnasium as gym
 
 from flappy_bird_env import FlappyBirdEnv
 
@@ -13,12 +14,28 @@ from flappy_bird_env import FlappyBirdEnv
 class Environment:
     """Wrapper exposing the action and observation spaces used by the agent."""
 
-    def __init__(self, reward_mode="sparse", max_steps=3000, render_mode=None):
+    def __init__(
+        self,
+        reward_mode="sparse",
+        max_steps=3000,
+        render_mode=None,
+        video_folder=None,
+        video_prefix="flappy_bird",
+        video_episodes=0,
+    ):
+        base_render_mode = "rgb_array" if video_folder else render_mode
         self.env = FlappyBirdEnv(
             reward_mode=reward_mode,
             max_steps=max_steps,
-            render_mode=render_mode,
+            render_mode=base_render_mode,
         )
+        if video_folder:
+            self.env = gym.wrappers.RecordVideo(
+                self.env,
+                video_folder=video_folder,
+                name_prefix=video_prefix,
+                episode_trigger=lambda episode_id: episode_id < int(video_episodes),
+            )
         self.action_space = self.env.action_space
         self.observation_space = self.env.observation_space
 

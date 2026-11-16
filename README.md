@@ -52,8 +52,28 @@ To use multiple CPU workers:
 python main.py --workers 3
 ```
 
+## Record evaluation videos
+
+To save five evaluation episodes for each configuration as MP4 files, run:
+
+```bash
+python main.py --record-video --video-episodes 5
+```
+
+The videos are saved in the `videos/` directory. Video recording is performed
+only for the seed-0 evaluation run of each configuration, so the command does
+not create a video for every training episode. Recording automatically uses
+one worker because multiple workers should not write to the same video folder.
+
+If video export reports that MoviePy is missing, install the requirements again:
+
+```bash
+pip install -r requirements.txt
+```
+
 The default run writes `results/pilot.json` and
-`figures/learning_curve.pdf`.
+`figures/learning_curve.pdf`. Video-enabled runs also write MP4 files to
+`videos/`.
 
 The JSON file contains the scores and experiment statistics.  The PDF file
 contains the training curves for the three Q-learning configurations.

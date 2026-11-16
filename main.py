@@ -24,6 +24,9 @@ def main():
         output_dir=args.output_dir,
         check_environment=not args.skip_check,
         render_heuristic=args.render,
+        record_video=args.record_video,
+        video_dir=args.video_dir,
+        video_episodes=args.video_episodes,
     )
     print(json.dumps(summary, indent=2))
 

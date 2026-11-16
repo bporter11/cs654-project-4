@@ -25,6 +25,22 @@ def add_arguments(parser):
         "--render", action="store_true", help="watch the hand-coded controller"
     )
     parser.add_argument(
+        "--record-video",
+        action="store_true",
+        help="save evaluation episodes as MP4 files in the videos folder",
+    )
+    parser.add_argument(
+        "--video-episodes",
+        type=int,
+        default=5,
+        help="number of evaluation episodes to record per configuration",
+    )
+    parser.add_argument(
+        "--video-dir",
+        default="videos",
+        help="directory where recorded videos are saved",
+    )
+    parser.add_argument(
         "--skip-check", action="store_true", help="skip Gymnasium environment check"
     )
     return parser

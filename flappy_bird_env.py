@@ -5,6 +5,8 @@ observations, rewards, and optional Pygame rendering.  Learning code lives in
 ``agent_q_learning.py`` and experiment code lives in ``experiments.py``.
 """
 
+import os
+
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
@@ -29,13 +31,13 @@ class FlappyBirdEnv(gym.Env):
     sparse rewards and a shaped reward variant for the experiments.
     """
 
-    metadata = {"render_modes": ["human"], "render_fps": 30}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
 
     def __init__(self, reward_mode="sparse", max_steps=3000, render_mode=None):
         if reward_mode not in {"sparse", "shaped"}:
             raise ValueError("reward_mode must be 'sparse' or 'shaped'")
-        if render_mode not in {None, "human"}:
-            raise ValueError("render_mode must be None or 'human'")
+        if render_mode not in {None, "human", "rgb_array"}:
+            raise ValueError("render_mode must be None, 'human', or 'rgb_array'")
 
         self.reward_mode = reward_mode
         self.max_steps = int(max_steps)
@@ -98,7 +100,7 @@ class FlappyBirdEnv(gym.Env):
             )
 
         truncated = self.steps >= self.max_steps
-        if self.render_mode == "human":
+        if self.render_mode in {"human", "rgb_array"}:
             self.render()
 
         return self._obs(), reward, terminated, truncated, {"score": self.score}
@@ -141,7 +143,10 @@ class FlappyBirdEnv(gym.Env):
         )
 
     def render(self):
-        """Render one frame with Pygame when ``render_mode='human'``."""
+        """Render one frame for a window or for a video recorder."""
+        if self.render_mode == "rgb_array" and os.environ.get("DISPLAY") is None:
+            os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+
         import pygame
 
         if self.screen is None:
@@ -167,7 +172,14 @@ class FlappyBirdEnv(gym.Env):
         )
         pygame.event.pump()
         pygame.display.flip()
-        self.clock.tick(self.metadata["render_fps"])
+
+        if self.render_mode == "human":
+            self.clock.tick(self.metadata["render_fps"])
+            return None
+
+        # Pygame returns (width, height, channels); Gymnasium expects
+        # (height, width, channels) in RGB order.
+        return np.transpose(pygame.surfarray.array3d(screen), (1, 0, 2))
 
     def close(self):
         if self.screen is not None:
